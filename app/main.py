@@ -33,7 +33,7 @@ app.include_router(vote.router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello world, I am here, learning git"}
+    return {"message": "Hello world, It is the 25th day of december and I am almost at docker"}
 
 
 
