@@ -31,7 +31,6 @@ def verify_access_token(token: str, credentials_exception):
     try:
 
         payload = jwt.decode(token, SECRET_KEY, algorithms= ALGORITHM) # This just stores all of our payload data
-
         id: str = payload.get("user_id") #Extract the ID
 
         if id is None:

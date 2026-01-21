@@ -14,17 +14,11 @@ router = APIRouter(
 # Getting all posts 
 @router.get("/", response_model= List[schemas.PostOut])
 # @router.get("/")
-def get_posts(db: Session = Depends(get_db), limit: int = 5, skip: int = 0, search: Optional[str] = ""):
-
-    # cursor.execute(""" SELECT * FROM newpost""")
-    # posts = cursor.fetchall()
-
-    # posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+def get_posts(db: Session = Depends(get_db), limit: int = 5, skip: int = 0, search: Optional[str] = ""):\
 
     posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
         models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
             models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    
 
     return posts
 
@@ -36,11 +30,6 @@ def get_posts(db: Session = Depends(get_db), limit: int = 5, skip: int = 0, sear
 def create_posts(new_post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int =
                   Depends(oauth2.get_current_user)):
 
-    # cursor.execute(""" INSERT INTO newpost (title, content) VALUES (%s, %s) RETURNING * """, 
-    #                (new_post.title, new_post.content))
-    # created_post = cursor.fetchone()
-    # conn.commit()                         # this is the line of code that pushes our created post into our table
-     
     print(current_user.id)
     created_post = models.Post(owner_id = current_user.id, **new_post.model_dump())
     db.add(created_post)
@@ -57,12 +46,7 @@ def create_posts(new_post: schemas.PostCreate, db: Session = Depends(get_db), cu
 @router.get("/{id}", response_model= schemas.PostOut)
 def get_post(id: int, db: Session = Depends(get_db), current_user: int =
                   Depends(oauth2.get_current_user)):
-
-    # cursor.execute(""" SELECT * FROM newpost WHERE id = %s""", (str(id),))
-    # one_post = cursor.fetchone()
-
-    # one_post = db.query(models.Post).filter(models.Post.id == id).first()
-
+    
     one_post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
         models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
             models.Post.id == id).first()
@@ -72,19 +56,14 @@ def get_post(id: int, db: Session = Depends(get_db), current_user: int =
         raise HTTPException(status_code= status.HTTP_404_NOT_FOUND, detail= f"post with id: {id} not found at all in this place")
     return one_post
 
+
+
 # Deleting a post 
 @router.delete("/{id}", status_code= status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db), current_user: int =
                   Depends(oauth2.get_current_user)):
-
-    # cursor.execute("""DELETE FROM newpost WHERE id = %s RETURNING *""", (str(id),))
-    # deleted_post = cursor.fetchone()
-    # conn.commit()
-
-
+    
     post_to_delete = db.query(models.Post).filter(models.Post.id == id)
-
-
     post = post_to_delete.first()
 
     if post == None :
@@ -100,16 +79,12 @@ def delete_post(id: int, db: Session = Depends(get_db), current_user: int =
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+
 # Updating a post with put 
 @router.put("/{id}", response_model= schemas.Post)
 def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int =
                   Depends(oauth2.get_current_user)):
-
-    # cursor.execute("""UPDATE newpost SET title = %s, content = %s WHERE id = %s RETURNING *""", 
-    #                (updated_post.title, updated_post.content, str(id),))
-    # final_update = cursor.fetchone()
-    # conn.commit()
-
+    
     post_query = db.query(models.Post).filter(models.Post.id == id)
     final_update = post_query.first()
 
